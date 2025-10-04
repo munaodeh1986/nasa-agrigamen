@@ -1,0 +1,2358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NASA AgriGame - Sustainable Agriculture Simulator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #2b442b 0%, #2c352c 100%);
+            min-height: 100vh;
+            color: white;
+        }
+        
+        .game-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            position: relative;
+        }
+        
+        .language-switcher {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
+        }
+        
+        .lang-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            border-radius: 8px;
+            padding: 8px 12px;
+            color: white;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .lang-btn.active {
+            background: linear-gradient(45deg, #7CFC00, #32CD32);
+            color: #333;
+            font-weight: bold;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, #7CFC00, #32CD32);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .tagline {
+            font-style: italic;
+            margin: 10px 0;
+            color: #90EE90;
+        }
+        
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 350px;
+            gap: 20px;
+            height: 80vh;
+        }
+        
+        .farm-display {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .control-panel {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            overflow-y: auto;
+        }
+        
+        .farm-grid {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            grid-template-rows: repeat(6, 1fr);
+            gap: 4px;
+            height: 100%;
+            border-radius: 15px;
+            overflow: hidden;
+        }
+        
+        .farm-cell {
+            background: #8FBC8F;
+            border-radius: 8px;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+        
+        .farm-cell:hover {
+            transform: scale(1.05);
+            border-color: #7CFC00;
+            box-shadow: 0 0 20px rgba(124, 252, 0, 0.5);
+        }
+        
+        .farm-cell.planted {
+            background: linear-gradient(45deg, #228B22, #32CD32);
+        }
+        
+        .farm-cell.watered {
+            background: linear-gradient(45deg, #4169E1, #87CEEB);
+        }
+        
+        .farm-cell.fertilized {
+            background: linear-gradient(45deg, #8B4513, #D2691E);
+        }
+        
+        .farm-cell.healthy {
+            background: linear-gradient(45deg, #00FF00, #ADFF2F);
+        }
+        
+        .farm-cell.ready {
+            background: linear-gradient(45deg, #FFD700, #FFA500);
+        }
+        
+        .control-section {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .control-section h3 {
+            margin-bottom: 15px;
+            color: #7CFC00;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .action-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        
+        .action-btn {
+            background: linear-gradient(45deg, #FF6B6B, #FF8E8E);
+            border: none;
+            border-radius: 12px;
+            padding: 15px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-size: 14px;
+        }
+        
+        .action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+        }
+        
+        .action-btn.plant { background: linear-gradient(45deg, #37504e, #2f4843); }
+        .action-btn.water { background: linear-gradient(45deg, #4FC3F7, #29B6F6); }
+        .action-btn.fertilize { background: linear-gradient(45deg, #FFB74D, #FF9800); }
+        .action-btn.harvest { background: linear-gradient(45deg, #81C784, #66BB6A); }
+        
+        .data-display {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        
+        .data-item {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .data-value {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+            background: linear-gradient(45deg, #7CFC00, #32CD32);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .data-label {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4ECDC4, #44A08D);
+            border-radius: 10px;
+            transition: width 0.3s ease;
+        }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(45deg, #FF6B6B, #FF8E8E);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 15px;
+            font-weight: bold;
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+        
+        .notification.show {
+            transform: translateX(0);
+        }
+        
+        .layer-controls {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .layer-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            border-radius: 8px;
+            padding: 8px 12px;
+            color: white;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            flex: 1;
+        }
+        
+        .layer-btn.active {
+            background: linear-gradient(45deg, #7CFC00, #32CD32);
+            color: #333;
+            font-weight: bold;
+        }
+        
+        .farm-overlay {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            right: 20px;
+            bottom: 20px;
+            pointer-events: none;
+            border-radius: 15px;
+        }
+        
+        .score-display {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 15px;
+            border-radius: 15px;
+            text-align: center;
+            border: 2px solid #7CFC00;
+        }
+        
+        .score-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #7CFC00;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        
+        .farm-cell.animate {
+            animation: pulse 0.5s ease-in-out;
+        }
+        
+        @keyframes grow {
+            0% { transform: scale(0.8); opacity: 0.5; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        
+        .growing {
+            animation: grow 0.5s ease-in-out;
+        }
+        
+        .tutorial-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+        }
+        
+        .tutorial-content {
+            background: linear-gradient(135deg, #2d5a2d 0%, #1a3a1a 100%);
+            padding: 30px;
+            border-radius: 20px;
+            max-width: 500px;
+            text-align: center;
+        }
+        
+        .scenario-selector {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin: 15px 0;
+        }
+        
+        .scenario-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            border-radius: 10px;
+            padding: 15px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .scenario-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
+        .scenario-btn.active {
+            background: linear-gradient(45deg, #7CFC00, #32CD32);
+            color: #333;
+            font-weight: bold;
+        }
+        
+        .resolution-info {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 10px;
+            margin: 10px 0;
+            font-size: 12px;
+            text-align: center;
+        }
+        
+        .challenge-popup {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(135deg, #2d5a2d 0%, #1a3a1a 100%);
+            padding: 25px;
+            border-radius: 15px;
+            z-index: 1500;
+            max-width: 400px;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+        
+        .context-info {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 8px;
+            margin: 5px 0;
+            font-size: 11px;
+            text-align: center;
+        }
+        
+        .crop-recommendations {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        
+        .crop-card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 10px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .crop-card:hover {
+            transform: scale(1.05);
+            border-color: #7CFC00;
+        }
+        
+        .crop-card.recommended {
+            background: linear-gradient(45deg, #7CFC00, #32CD32);
+            color: #1a3a1a;
+            font-weight: bold;
+        }
+        
+        .leaderboard {
+            max-height: 200px;
+            overflow-y: auto;
+            margin-top: 10px;
+        }
+        
+        .leaderboard-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .leaderboard-item.current {
+            background: rgba(124, 252, 0, 0.2);
+            border-radius: 5px;
+        }
+        
+        .celebration {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 3000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s ease;
+        }
+        
+        .celebration.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+        
+        .celebration-content {
+            background: linear-gradient(45deg, #FFD700, #FFA500);
+            padding: 30px;
+            border-radius: 20px;
+            text-align: center;
+            color: #1a3a1a;
+            transform: scale(0.8);
+            transition: transform 0.5s ease;
+        }
+        
+        .celebration.active .celebration-content {
+            transform: scale(1);
+        }
+        
+        .resource-input {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 10px 0;
+        }
+        
+        .resource-slider {
+            flex: 1;
+            height: 10px;
+            -webkit-appearance: none;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 5px;
+            outline: none;
+        }
+        
+        .resource-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #7CFC00;
+            cursor: pointer;
+        }
+        
+        .resource-value {
+            min-width: 40px;
+            text-align: center;
+            font-weight: bold;
+        }
+        
+        .decision-feedback {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 12px;
+            text-align: center;
+        }
+        
+        .decision-feedback.good {
+            background: rgba(124, 252, 0, 0.2);
+            border: 1px solid #7CFC00;
+        }
+        
+        .decision-feedback.bad {
+            background: rgba(255, 107, 107, 0.2);
+            border: 1px solid #FF6B6B;
+        }
+
+        /* === MULTIPLAYER FEATURES === */
+        /* Login Screen */
+        .login-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 3000;
+        }
+        
+        .login-content {
+            background: linear-gradient(135deg, #2d5a2d 0%, #1a3a1a 100%);
+            padding: 40px;
+            border-radius: 20px;
+            max-width: 550px;
+            text-align: center;
+        }
+        
+        .login-content input[type="text"] {
+            width: 100%;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 10px;
+            border: 2px solid rgba(255,255,255,0.3);
+            background: rgba(255,255,255,0.1);
+            color: white;
+            font-size: 18px;
+        }
+        
+        .login-content input::placeholder {
+            color: rgba(255,255,255,0.6);
+        }
+        
+        .mode-selector {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .mode-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            border-radius: 12px;
+            padding: 20px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 16px;
+        }
+        
+        .mode-btn.active {
+            background: linear-gradient(45deg, #7CFC00, #32CD32);
+            color: #1a3a1a;
+            font-weight: bold;
+        }
+        
+        /* Community Hub Button */
+        .community-hub-btn {
+            position: fixed;
+            right: 20px;
+            top: 70px;
+            background: linear-gradient(45deg, #7CFC00, #32CD32);
+            color: #1a3a1a;
+            border: none;
+            border-radius: 12px;
+            padding: 15px 25px;
+            font-weight: bold;
+            cursor: pointer;
+            z-index: 101;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            display: none;
+        }
+        
+        .community-hub-btn.show {
+            display: block;
+        }
+        
+        /* Multiplayer Panel */
+        .multiplayer-panel {
+            position: fixed;
+            right: -380px;
+            top: 120px;
+            width: 360px;
+            max-height: calc(100vh - 140px);
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px 0 0 20px;
+            padding: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: right 0.3s ease;
+            z-index: 100;
+            overflow-y: auto;
+        }
+        
+        .multiplayer-panel.open {
+            right: 0;
+        }
+        
+        .mp-section {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .mp-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            font-weight: bold;
+            color: #7CFC00;
+            font-size: 14px;
+        }
+        
+        .player-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            margin: 6px 0;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            font-size: 13px;
+        }
+        
+        .player-status {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 8px;
+            display: inline-block;
+        }
+        
+        .player-status.active {
+            background: #7CFC00;
+            box-shadow: 0 0 10px #7CFC00;
+            animation: pulse-status 2s infinite;
+        }
+        
+        .player-status.inactive {
+            background: #666;
+        }
+        
+        @keyframes pulse-status {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        /* Chat System */
+        .chat-container {
+            height: 220px;
+            overflow-y: auto;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            padding: 10px;
+            margin: 10px 0;
+        }
+        
+        .chat-msg {
+            margin: 10px 0;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            font-size: 12px;
+        }
+        
+        .chat-msg.system {
+            background: rgba(124, 252, 0, 0.2);
+            border-left: 3px solid #7CFC00;
+        }
+        
+        .chat-msg.own {
+            background: rgba(33, 150, 243, 0.2);
+            border-left: 3px solid #2196F3;
+        }
+        
+        .chat-msg-sender {
+            font-weight: bold;
+            margin-bottom: 4px;
+            font-size: 11px;
+        }
+        
+        .chat-msg-time {
+            font-size: 10px;
+            opacity: 0.6;
+            margin-top: 4px;
+        }
+        
+        .chat-input-container {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        
+        .chat-input-container input {
+            flex: 1;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 13px;
+        }
+        
+        .chat-send-btn {
+            padding: 10px 18px;
+            border-radius: 8px;
+            border: none;
+            background: linear-gradient(45deg, #7CFC00, #32CD32);
+            color: #1a3a1a;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 13px;
+        }
+        
+        /* Trade Window */
+        .trade-window {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(135deg, #2d5a2d 0%, #1a3a1a 100%);
+            padding: 30px;
+            border-radius: 20px;
+            z-index: 2001;
+            max-width: 550px;
+            width: 90%;
+            display: none;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+        }
+        
+        .trade-window.show {
+            display: block;
+        }
+        
+        .trade-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 20px 0;
+        }
+        
+        .trade-side {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 18px;
+        }
+        
+        .trade-side h4 {
+            margin-bottom: 12px;
+            color: #7CFC00;
+        }
+        
+        .trade-window select,
+        .trade-window input[type="number"] {
+            width: 100%;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            margin: 8px 0;
+            font-size: 14px;
+        }
+        
+        .trade-partner-select {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            margin: 15px 0;
+            font-size: 14px;
+        }
+        
+        /* Help System */
+        .help-request-item {
+            padding: 12px;
+            background: rgba(255, 193, 7, 0.2);
+            border-left: 3px solid #FFC107;
+            border-radius: 8px;
+            margin: 10px 0;
+            font-size: 13px;
+        }
+        
+        .help-requester {
+            font-weight: bold;
+            margin-bottom: 6px;
+            font-size: 12px;
+        }
+        
+        .help-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        
+        .help-btn {
+            flex: 1;
+            padding: 8px;
+            border-radius: 8px;
+            border: none;
+            font-size: 12px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        
+        .help-accept {
+            background: linear-gradient(45deg, #81C784, #66BB6A);
+            color: white;
+        }
+        
+        .help-helped {
+            background: rgba(124, 252, 0, 0.3);
+            color: #7CFC00;
+            cursor: default;
+        }
+        
+        /* Community Challenge */
+        .challenge-bar-container {
+            margin: 12px 0;
+        }
+        
+        .challenge-stats {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            margin-bottom: 8px;
+        }
+        
+        .challenge-bar {
+            height: 10px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        
+        .challenge-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #7CFC00, #32CD32);
+            transition: width 0.5s ease;
+            width: 0%;
+        }
+        
+        /* RTL Support */
+        body.rtl {
+            direction: rtl;
+        }
+        
+        body.rtl .language-switcher {
+            left: 20px;
+            right: auto;
+        }
+        
+        body.rtl .score-display {
+            left: 20px;
+            right: auto;
+        }
+        
+        body.rtl .community-hub-btn {
+            left: 20px;
+            right: auto;
+        }
+        
+        body.rtl .multiplayer-panel {
+            left: -380px;
+            right: auto;
+            border-radius: 0 20px 20px 0;
+        }
+        
+        body.rtl .multiplayer-panel.open {
+            left: 0;
+        }
+    </style>
+</head>
+<body>
+    <!-- LOGIN SCREEN -->
+    <div class="login-overlay" id="loginScreen">
+        <div class="login-content">
+            <h2 style="font-size: 2rem; margin-bottom: 15px;">Welcome to NASA AgriGame</h2>
+            <p class="tagline">Join the Sustainable Farming Community!</p>
+            
+            <input type="text" id="farmerNameInput" placeholder="Enter your farmer name" maxlength="20">
+            
+            <div class="mode-selector">
+                <button class="mode-btn active" id="singleModeBtn" onclick="selectGameMode('single')">
+                    🧑‍🌾 Single Player<br><small>Farm alone</small>
+                </button>
+                <button class="mode-btn" id="multiModeBtn" onclick="selectGameMode('multi')">
+                    👥 Multiplayer<br><small>Join community</small>
+                </button>
+            </div>
+            
+            <button class="action-btn plant" onclick="proceedFromLogin()" style="width: 100%; margin-top: 20px;">
+                Continue to Game
+            </button>
+        </div>
+    </div>
+
+    <!-- TUTORIAL OVERLAY -->
+    <div class="tutorial-overlay" id="tutorialOverlay" style="display: none;">
+        <div class="tutorial-content">
+            <h2 id="tutorialTitle">🌱 NASA AgriGame Tutorial</h2>
+            <p class="tagline" id="tutorialTagline">Grow Smarter with NASA Data – Play, Learn, Sustain!</p>
+            <p id="tutorialDesc">Learn how real NASA satellite data helps farmers make sustainable decisions!</p>
+            
+            <div class="resolution-info">
+                📡 <strong id="realDataTitle">Real NASA Data:</strong> <span id="dataTypes">Soil Moisture, Weather, NDVI</span><br>
+                <small id="apiInfo">Using NASA's open data APIs for real-time information</small>
+            </div>
+            
+            <div style="text-align: left; margin: 20px 0;">
+                <h4 id="howToPlayTitle">🎯 How to Play:</h4>
+                <p id="playTip1">• <strong>Analyze</strong> real NASA data before making decisions</p>
+                <p id="playTip2">• <strong>Optimize</strong> resource use based on current conditions</p>
+                <p id="playTip3">• <strong>Plant</strong> recommended crops for the season</p>
+                <p id="playTip4">• <strong>Compete</strong> on the global leaderboard</p>
+            </div>
+            
+            <h4 id="chooseLocationTitle">🏞️ Choose Your Farm Location:</h4>
+            <div class="scenario-selector">
+                <button class="scenario-btn active" onclick="selectScenario('riyadh')" id="riyadhBtn">Riyadh<br><small id="riyadhDesc">Central Region</small></button>
+                <button class="scenario-btn" onclick="selectScenario('alhasa')" id="alhasaBtn">Al-Ahsa<br><small id="alhasaDesc">Eastern Oasis</small></button>
+            </div>
+            
+            <button class="action-btn plant" onclick="startGame()" style="margin-top: 20px;" id="startButton">
+                Start Sustainable Farming!
+            </button>
+        </div>
+    </div>
+    
+    <!-- CHALLENGE POPUP -->
+    <div class="challenge-popup" id="challengePopup" style="display: none;">
+        <h3 id="challengeTitle">🌦️ Sustainability Challenge!</h3>
+        <p id="challengeText">NASA data shows soil moisture at critical levels!</p>
+        <div class="resource-input">
+            <span id="waterAmountLabel">Water Amount:</span>
+            <input type="range" min="0" max="100" value="50" class="resource-slider" id="waterSlider">
+            <span class="resource-value" id="waterValue">50%</span>
+        </div>
+        <div class="decision-feedback" id="challengeFeedback"></div>
+        <button class="action-btn water" onclick="submitChallenge()" id="applySolutionBtn">Apply Sustainable Solution</button>
+    </div>
+
+    <!-- CELEBRATION -->
+    <div class="celebration" id="celebration">
+        <div class="celebration-content">
+            <h2 id="milestoneTitle">🎉 Milestone Achieved! 🎉</h2>
+            <p id="milestoneText">You've reached 500 points!</p>
+            <p id="continueFarmingText">Keep up the sustainable farming!</p>
+            <button class="action-btn harvest" onclick="closeCelebration()" style="margin-top: 15px;" id="continueButton">Continue Farming</button>
+        </div>
+    </div>
+
+    <!-- MAIN GAME -->
+    <div class="game-container" style="display: none;" id="gameContainer">
+        <div class="header">
+            <div class="language-switcher">
+                <button class="lang-btn active" id="enBtn" onclick="switchLanguage('en')">English</button>
+                <button class="lang-btn" id="arBtn" onclick="switchLanguage('ar')">العربية</button>
+            </div>
+            <h1 id="gameTitle">🌾 NASA AgriGame 🛰️</h1>
+            <p class="tagline" id="gameTagline">Grow Smarter with NASA Data – Play, Learn, Sustain!</p>
+            <p id="gameDescription">Use real NASA satellite data to optimize your sustainable agricultural practices</p>
+            <div class="context-info" id="contextInfo">
+                Farm Location: Riyadh | Data Source: NASA APIs | Real-time Updates
+            </div>
+        </div>
+        
+        <div class="main-grid">
+            <div class="farm-display">
+                <div class="farm-grid" id="farmGrid"></div>
+                <div class="farm-overlay" id="farmOverlay"></div>
+                <div class="score-display">
+                    <div class="score-value" id="scoreValue">0</div>
+                    <div id="sustainabilityScore">Sustainability Score</div>
+                </div>
+            </div>
+            
+            <div class="control-panel">
+                <div class="control-section">
+                    <h3>
+                        <span id="farmActionsTitle">Sustainable Farm Actions</span>
+                    </h3>
+                    <div class="action-buttons">
+                        <button class="action-btn plant" onclick="selectAction('plant')">
+                            <span id="plantButton">Plant</span>
+                        </button>
+                        <button class="action-btn water" onclick="selectAction('water')">
+                            <span id="waterButton">Water</span>
+                        </button>
+                        <button class="action-btn fertilize" onclick="selectAction('fertilize')">
+                            <span id="fertilizeButton">Fertilize</span>
+                        </button>
+                        <button class="action-btn harvest" onclick="selectAction('harvest')">
+                            <span id="harvestButton">Harvest</span>
+                        </button>
+                    </div>
+                    <div class="resource-input" id="resourceInput" style="display: none;">
+                        <span id="resourceLabel">Water Amount:</span>
+                        <input type="range" min="0" max="100" value="50" class="resource-slider" id="resourceSlider">
+                        <span class="resource-value" id="resourceValue">50%</span>
+                    </div>
+                    <div class="decision-feedback" id="decisionFeedback"></div>
+                </div>
+                
+                <div class="control-section">
+                    <h3><span id="nasaDataTitle">NASA Real-time Data</span></h3>
+                    <div class="layer-controls">
+                        <button class="layer-btn active" onclick="switchLayer('soil')" id="soilButton">Soil Moisture</button>
+                        <button class="layer-btn" onclick="switchLayer('temp')" id="tempButton">Temperature</button>
+                        <button class="layer-btn" onclick="switchLayer('rain')" id="rainButton">Rainfall</button>
+                        <button class="layer-btn" onclick="switchLayer('ndvi')" id="ndviButton">NDVI</button>
+                    </div>
+                    <div class="context-info" id="layerInfo">
+                        Soil Moisture: Root zone (0-1m depth) - Real NASA Data
+                    </div>
+                </div>
+                
+                <div class="control-section">
+                    <h3><span id="realTimeDataTitle">Real-time NASA Data</span></h3>
+                    <div class="data-display">
+                        <div class="data-item">
+                            <div class="data-value" id="soilMoisture">65%</div>
+                            <div class="data-label" id="soilLabel">Soil Moisture</div>
+                        </div>
+                        <div class="data-item">
+                            <div class="data-value" id="temperature">22°C</div>
+                            <div class="data-label" id="tempLabel">Temperature</div>
+                        </div>
+                        <div class="data-item">
+                            <div class="data-value" id="rainfall">12mm</div>
+                            <div class="data-label" id="rainLabel">Rainfall</div>
+                        </div>
+                        <div class="data-item">
+                            <div class="data-value" id="ndviValue">0.75</div>
+                            <div class="data-label" id="ndviLabel">NDVI Index</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="control-section">
+                    <h3><span id="cropRecommendationsTitle">Crop Recommendations</span></h3>
+                    <div class="crop-recommendations" id="cropRecommendations"></div>
+                </div>
+                
+                <div class="control-section">
+                    <h3><span id="leaderboardTitle">Global Leaderboard</span></h3>
+                    <div class="leaderboard" id="leaderboard"></div>
+                </div>
+                
+                <div class="control-section">
+                    <h3><span id="farmProgressTitle">Farm Progress</span></h3>
+                    <div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                            <span id="cropGrowthLabel">Crop Growth</span>
+                            <span id="growthPercent">0%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="growthProgress" style="width: 0%"></div>
+                        </div>
+                    </div>
+                    <div style="margin-top: 15px;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                            <span id="sustainabilityLabel">Sustainability</span>
+                            <span id="sustainabilityPercent">100%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="sustainabilityProgress" style="width: 100%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- MULTIPLAYER FEATURES -->
+    <button class="community-hub-btn" id="communityHubBtn" onclick="toggleMultiplayerPanel()">
+        👥 Community Hub
+    </button>
+    
+    <div class="multiplayer-panel" id="multiplayerPanel">
+        <!-- Connected Players -->
+        <div class="mp-section">
+            <div class="mp-header">
+                <span>🌐 Connected Farmers</span>
+                <span id="playerCount">0</span>
+            </div>
+            <div id="connectedPlayersList"></div>
+        </div>
+        
+        <!-- Chat System -->
+        <div class="mp-section">
+            <div class="mp-header">
+                <span>💬 Community Chat</span>
+            </div>
+            <div class="chat-container" id="chatContainer"></div>
+            <div class="chat-input-container">
+                <input type="text" id="chatInput" placeholder="Share farming tips..." maxlength="100">
+                <button class="chat-send-btn" onclick="sendChatMessage()">Send</button>
+            </div>
+        </div>
+        
+        <!-- Trading System -->
+        <div class="mp-section">
+            <div class="mp-header">
+                <span>🤝 Resource Trading</span>
+            </div>
+            <button class="action-btn water" onclick="openTradeWindow()" style="width: 100%;">
+                Open Trade Center
+            </button>
+        </div>
+        
+        <!-- Help System -->
+        <div class="mp-section">
+            <div class="mp-header">
+                <span>🆘 Community Help</span>
+            </div>
+            <button class="action-btn fertilize" onclick="requestHelp()" style="width: 100%; margin-bottom: 10px;">
+                Request Help (+10pts when helped)
+            </button>
+            <div id="helpRequestsList"></div>
+        </div>
+        
+        <!-- Community Challenge -->
+        <div class="mp-section">
+            <div class="mp-header">
+                <span>🏆 Weekly Challenge</span>
+            </div>
+            <p style="font-size: 12px; margin-bottom: 8px;">Goal: Reach 10,000 collective points</p>
+            <div class="challenge-bar-container">
+                <div class="challenge-stats">
+                    <span id="challengeCurrentPoints">0</span>
+                    <span>10,000</span>
+                </div>
+                <div class="challenge-bar">
+                    <div class="challenge-fill" id="challengeProgressBar"></div>
+                </div>
+            </div>
+            <p style="font-size: 11px; margin-top: 8px; opacity: 0.8;" id="challengeReward">Reward: 100 bonus points for all!</p>
+        </div>
+    </div>
+    
+    <!-- TRADE WINDOW -->
+    <div class="trade-window" id="tradeWindow">
+        <h3 style="margin-bottom: 20px;">🤝 Resource Trading Center</h3>
+        <div style="margin: 15px 0;">
+            <label style="font-size: 14px; margin-bottom: 8px; display: block;">Trade with:</label>
+            <select id="tradePartnerSelect" class="trade-partner-select">
+                <option value="">Select a farmer</option>
+            </select>
+        </div>
+        
+        <div class="trade-grid">
+            <div class="trade-side">
+                <h4>📤 You Offer</h4>
+                <select id="offerResourceType">
+                    <option value="water">💧 Water</option>
+                    <option value="fertilizer">🌿 Fertilizer</option>
+                    <option value="seeds">🌱 Seeds</option>
+                    <option value="tools">🔧 Tools</option>
+                </select>
+                <input type="number" id="offerAmount" placeholder="Amount" min="1" value="10">
+            </div>
+            <div class="trade-side">
+                <h4>📥 You Request</h4>
+                <select id="requestResourceType">
+                    <option value="water">💧 Water</option>
+                    <option value="fertilizer">🌿 Fertilizer</option>
+                    <option value="seeds">🌱 Seeds</option>
+                    <option value="tools">🔧 Tools</option>
+                </select>
+                <input type="number" id="requestAmount" placeholder="Amount" min="1" value="10">
+            </div>
+        </div>
+        
+        <div style="display: flex; gap: 12px; margin-top: 25px;">
+            <button class="action-btn harvest" onclick="proposeTrade()" style="flex: 1;">
+                Send Trade Offer
+            </button>
+            <button class="action-btn" onclick="closeTradeWindow()" style="flex: 1; background: rgba(255,255,255,0.2);">
+                Cancel
+            </button>
+        </div>
+    </div>
+    
+    <div class="notification" id="notification"></div>
+    
+    <script>
+        // === GAME STATE ===
+        var gameState = {
+            selectedAction: 'plant',
+            currentLayer: 'soil',
+            score: 0,
+            farmData: [],
+            scenario: 'riyadh',
+            tutorialCompleted: false,
+            currentChallenge: null,
+            playerName: 'Farmer_' + Math.floor(Math.random() * 1000),
+            milestones: [100, 250, 500, 750, 1000],
+            achievedMilestones: [],
+            nasaData: {
+                soilMoisture: {value: 65, depth: 'root-zone', optimal: [60, 80]},
+                temperature: {value: 22, height: 'surface', optimal: [18, 28]},
+                rainfall: {value: 12, period: 'weekly', optimal: [10, 30]},
+                ndvi: {value: 0.75, resolution: '30m', optimal: [0.6, 0.9]}
+            },
+            realWorldContext: {
+                farmLocation: 'Riyadh',
+                dataSource: 'NASA APIs',
+                updateFrequency: 'Real-time Updates'
+            },
+            cropRecommendations: [],
+            leaderboard: [],
+            currentLanguage: 'en',
+            // === MULTIPLAYER ADDITIONS ===
+            gameMode: 'single',
+            connectedPlayers: [],
+            chatMessages: [],
+            helpRequests: [],
+            trades: [],
+            communityChallenge: {
+                goal: 10000,
+                currentProgress: 0,
+                completed: false
+            },
+            playerResources: {
+                water: 100,
+                fertilizer: 100,
+                seeds: 50,
+                tools: 20
+            }
+        };
+
+        // === MULTIPLAYER SYSTEM FUNCTIONS ===
+        
+        // 1. LOGIN SYSTEM
+        var selectedMode = 'single';
+        
+        function selectGameMode(mode) {
+            selectedMode = mode;
+            gameState.gameMode = mode;
+            document.getElementById('singleModeBtn').classList.toggle('active', mode === 'single');
+            document.getElementById('multiModeBtn').classList.toggle('active', mode === 'multi');
+        }
+        
+        function proceedFromLogin() {
+            const nameInput = document.getElementById('farmerNameInput').value.trim();
+            if (!nameInput) {
+                showNotification('⚠️ Please enter your farmer name!');
+                return;
+            }
+            
+            gameState.playerName = nameInput;
+            document.getElementById('loginScreen').style.display = 'none';
+            document.getElementById('tutorialOverlay').style.display = 'flex';
+            
+            if (gameState.gameMode === 'multi') {
+                document.getElementById('communityHubBtn').classList.add('show');
+                initializeMultiplayer();
+            }
+        }
+        
+        // 2. INITIALIZE MULTIPLAYER
+        function initializeMultiplayer() {
+            const playerNames = ['EcoFarmer42', 'GreenThumb99', 'SustainableSam', 'AgriTechPro', 
+                                'FarmMaster', 'HarvestHero', 'CropWhisperer', 'SoilSage', 'WaterWise', 'OrganicOllie'];
+            const locations = ['Riyadh', 'Al-Ahsa', 'Jeddah', 'Dammam', 'Medina'];
+            
+            for (let i = 0; i < 8; i++) {
+                gameState.connectedPlayers.push({
+                    id: 'player_' + i,
+                    name: playerNames[i],
+                    location: locations[Math.floor(Math.random() * locations.length)],
+                    score: Math.floor(Math.random() * 800) + 200,
+                    status: Math.random() > 0.25 ? 'active' : 'inactive',
+                    lastActivity: Date.now() - Math.floor(Math.random() * 300000),
+                    resources: {
+                        water: Math.floor(Math.random() * 80) + 20,
+                        fertilizer: Math.floor(Math.random() * 80) + 20,
+                        seeds: Math.floor(Math.random() * 40) + 10,
+                        tools: Math.floor(Math.random() * 15) + 5
+                    }
+                });
+            }
+            
+            updateConnectedPlayers();
+            addSystemMessage(`🎉 Welcome ${gameState.playerName}! ${gameState.connectedPlayers.length} farmers are online.`);
+            startAutoSimulation();
+        }
+        
+        // 3. CONNECTED PLAYERS BOARD
+        function updateConnectedPlayers() {
+            const container = document.getElementById('connectedPlayersList');
+            const countEl = document.getElementById('playerCount');
+            
+            if (!container) return;
+            
+            container.innerHTML = '';
+            countEl.textContent = gameState.connectedPlayers.length + 1;
+            
+            // Add current player
+            const ownDiv = document.createElement('div');
+            ownDiv.className = 'player-item';
+            ownDiv.innerHTML = `
+                <div>
+                    <span class="player-status active"></span>
+                    <strong>${gameState.playerName}</strong> (You)
+                </div>
+                <div style="text-align: right; font-size: 12px;">
+                    <div style="color: #7CFC00;">${gameState.score} pts</div>
+                    <div style="opacity: 0.7;">${gameState.realWorldContext.farmLocation}</div>
+                </div>
+            `;
+            container.appendChild(ownDiv);
+            
+            // Add other players
+            gameState.connectedPlayers.forEach(player => {
+                const pDiv = document.createElement('div');
+                pDiv.className = 'player-item';
+                pDiv.innerHTML = `
+                    <div>
+                        <span class="player-status ${player.status}"></span>
+                        ${player.name}
+                    </div>
+                    <div style="text-align: right; font-size: 12px;">
+                        <div>${player.score} pts</div>
+                        <div style="opacity: 0.7;">${player.location}</div>
+                    </div>
+                `;
+                container.appendChild(pDiv);
+            });
+            
+            updateTradePartnerList();
+        }
+        
+        function updateTradePartnerList() {
+            const select = document.getElementById('tradePartnerSelect');
+            if (!select) return;
+            
+            select.innerHTML = '<option value="">Select a farmer</option>';
+            gameState.connectedPlayers.filter(p => p.status === 'active').forEach(p => {
+                select.innerHTML += `<option value="${p.id}">${p.name} (${p.location})</option>`;
+            });
+        }
+        
+        function toggleMultiplayerPanel() {
+            document.getElementById('multiplayerPanel').classList.toggle('open');
+        }
+        
+        // 4. CHAT SYSTEM
+        function sendChatMessage() {
+            const input = document.getElementById('chatInput');
+            const msg = input.value.trim();
+            
+            if (!msg) return;
+            
+            addChatMessage(gameState.playerName, msg, true);
+            input.value = '';
+            
+            // Simulate responses (30% chance)
+            if (Math.random() < 0.3) {
+                setTimeout(() => {
+                    const responses = [
+                        'Great tip! Thanks for sharing! 🌱',
+                        'I agree, NASA data is really helpful!',
+                        'Anyone want to trade resources?',
+                        'Just harvested 600 points! 🎉',
+                        'Check the NDVI layer before planting',
+                        'Sustainable farming is the future!',
+                        'NASA data helps optimize water use 💧',
+                        'Anyone need help with their crops?'
+                    ];
+                    const randomPlayer = gameState.connectedPlayers[Math.floor(Math.random() * gameState.connectedPlayers.length)];
+                    addChatMessage(randomPlayer.name, responses[Math.floor(Math.random() * responses.length)], false);
+                }, 1500 + Math.random() * 2500);
+            }
+        }
+        
+        function addChatMessage(sender, message, isOwn) {
+            const container = document.getElementById('chatContainer');
+            if (!container) return;
+            
+            const msgDiv = document.createElement('div');
+            msgDiv.className = `chat-msg ${isOwn ? 'own' : ''}`;
+            msgDiv.innerHTML = `
+                <div class="chat-msg-sender">${sender}</div>
+                <div>${message}</div>
+                <div class="chat-msg-time">${getTimeString()}</div>
+            `;
+            container.appendChild(msgDiv);
+            container.scrollTop = container.scrollHeight;
+            
+            gameState.chatMessages.push({ sender, message, time: Date.now(), isOwn });
+        }
+        
+        function addSystemMessage(message) {
+            const container = document.getElementById('chatContainer');
+            if (!container) return;
+            
+            const msgDiv = document.createElement('div');
+            msgDiv.className = 'chat-msg system';
+            msgDiv.innerHTML = `
+                <div class="chat-msg-sender">🤖 System</div>
+                <div>${message}</div>
+            `;
+            container.appendChild(msgDiv);
+            container.scrollTop = container.scrollHeight;
+        }
+        
+        function getTimeString() {
+            const now = new Date();
+            return now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        }
+        
+        // Enter key support for chat
+        document.addEventListener('DOMContentLoaded', function() {
+            const chatInput = document.getElementById('chatInput');
+            if (chatInput) {
+                chatInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') sendChatMessage();
+                });
+            }
+        });
+        
+        // 5. TRADING SYSTEM
+        function openTradeWindow() {
+            document.getElementById('tradeWindow').classList.add('show');
+            updateTradePartnerList();
+        }
+        
+        function closeTradeWindow() {
+            document.getElementById('tradeWindow').classList.remove('show');
+        }
+        
+        function proposeTrade() {
+            const partnerId = document.getElementById('tradePartnerSelect').value;
+            const offerType = document.getElementById('offerResourceType').value;
+            const offerAmt = parseInt(document.getElementById('offerAmount').value);
+            const requestType = document.getElementById('requestResourceType').value;
+            const requestAmt = parseInt(document.getElementById('requestAmount').value);
+            
+            if (!partnerId) {
+                showNotification('⚠️ Please select a trading partner!');
+                return;
+            }
+            
+            if (!offerAmt || !requestAmt || offerAmt <= 0 || requestAmt <= 0) {
+                showNotification('⚠️ Please enter valid amounts!');
+                return;
+            }
+            
+            if (gameState.playerResources[offerType] < offerAmt) {
+                showNotification(`⚠️ Not enough ${offerType}! You have ${gameState.playerResources[offerType]}`);
+                return;
+            }
+            
+            const partner = gameState.connectedPlayers.find(p => p.id === partnerId);
+            showNotification(`📤 Sending trade offer to ${partner.name}...`);
+            
+            // Simulate trade processing
+            setTimeout(() => {
+                if (Math.random() < 0.7) {
+                    // Trade accepted
+                    gameState.playerResources[offerType] -= offerAmt;
+                    gameState.playerResources[requestType] += requestAmt;
+                    gameState.score += 15;
+                    
+                    showNotification(`✅ Trade completed with ${partner.name}! +15 points`);
+                    addSystemMessage(`${gameState.playerName} traded ${offerAmt} ${offerType} with ${partner.name} for ${requestAmt} ${requestType}`);
+                    
+                    updateDisplay();
+                    closeTradeWindow();
+                } else {
+                    // Trade declined
+                    showNotification(`❌ ${partner.name} declined the trade`);
+                }
+            }, 1800);
+        }
+        
+        // 6. HELP SYSTEM
+        function requestHelp() {
+            const helpTypes = [
+                { type: 'water', text: 'Need water management advice - soil seems too dry!', icon: '💧' },
+                { type: 'fertilizer', text: 'Low NDVI readings - need fertilization tips', icon: '🌿' },
+                { type: 'harvest', text: 'Best practices for sustainable harvesting?', icon: '🌽' },
+                { type: 'planting', text: 'Which crops work best in current conditions?', icon: '🌱' },
+                { type: 'nasa', text: 'How to interpret NASA data layers?', icon: '🛰️' }
+            ];
+            
+            const randomHelp = helpTypes[Math.floor(Math.random() * helpTypes.length)];
+            
+            const helpRequest = {
+                id: 'help_' + Date.now(),
+                requester: gameState.playerName,
+                type: randomHelp.type,
+                text: randomHelp.text,
+                icon: randomHelp.icon,
+                timestamp: Date.now(),
+                helpers: []
+            };
+            
+            gameState.helpRequests.push(helpRequest);
+            addSystemMessage(`${helpRequest.icon} ${gameState.playerName} requested help: ${randomHelp.text}`);
+            showNotification('🆘 Help request sent to community!');
+            
+            // Simulate help responses (2-4 players respond)
+            const respondCount = Math.floor(Math.random() * 3) + 2;
+            for (let i = 0; i < respondCount; i++) {
+                setTimeout(() => {
+                    const helper = gameState.connectedPlayers[Math.floor(Math.random() * gameState.connectedPlayers.length)];
+                    if (!helpRequest.helpers.includes(helper.name)) {
+                        helpRequest.helpers.push(helper.name);
+                        addChatMessage(helper.name, getHelpAdvice(randomHelp.type), false);
+                        
+                        // Award points for receiving help
+                        if (i === 0) {
+                            gameState.score += 10;
+                            showNotification('✅ Help received! +10 points');
+                            updateDisplay();
+                        }
+                    }
+                }, (i + 1) * 2500);
+            }
+            
+            updateHelpRequestsDisplay();
+        }
+        
+        function getHelpAdvice(type) {
+            const advice = {
+                water: 'Check NASA soil moisture data. Water when below 50% for best results! 💧',
+                fertilizer: 'Use NDVI layer - fertilize when NDVI < 0.6. Organic is best! 🌿',
+                harvest: 'Wait for 🌽 icon. Harvest during optimal temps (18-28°C). 🌾',
+                planting: 'Follow crop recommendations based on NASA data and current season! 🌱',
+                nasa: 'Each layer shows different data - toggle between them to optimize decisions! 🛰️'
+            };
+            return advice[type] || 'Happy to help! Check the NASA data layers for insights.';
+        }
+        
+        function updateHelpRequestsDisplay() {
+            const container = document.getElementById('helpRequestsList');
+            if (!container) return;
+            
+            container.innerHTML = '';
+            
+            // Show recent help requests from other players
+            const othersHelp = gameState.helpRequests.filter(h => h.requester !== gameState.playerName);
+            const recentHelp = othersHelp.slice(-3);
+            
+            recentHelp.forEach(help => {
+                const helpDiv = document.createElement('div');
+                helpDiv.className = 'help-request-item';
+                
+                const alreadyHelped = help.helpers.includes(gameState.playerName);
+                
+                helpDiv.innerHTML = `
+                    <div class="help-requester">${help.icon} ${help.requester}</div>
+                    <div style="margin: 6px 0;">${help.text}</div>
+                    <div style="font-size: 11px; opacity: 0.7; margin-top: 4px;">
+                        ${help.helpers.length} farmer${help.helpers.length !== 1 ? 's' : ''} helped
+                    </div>
+                    ${!alreadyHelped ? `
+                        <div class="help-actions">
+                            <button class="help-btn help-accept" onclick="offerHelp('${help.id}')">
+                                Offer Help (+20pts)
+                            </button>
+                        </div>
+                    ` : `
+                        <div class="help-actions">
+                            <button class="help-btn help-helped">✓ You Helped</button>
+                        </div>
+                    `}
+                `;
+                container.appendChild(helpDiv);
+            });
+        }
+        
+        function offerHelp(helpId) {
+            const help = gameState.helpRequests.find(h => h.id === helpId);
+            if (!help) return;
+            
+            help.helpers.push(gameState.playerName);
+            
+            const advice = getHelpAdvice(help.type);
+            addChatMessage(gameState.playerName, advice, true);
+            
+            gameState.score += 20;
+            showNotification('🎉 +20 points for helping the community!');
+            updateDisplay();
+            updateHelpRequestsDisplay();
+        }
+        
+        // 7. COMMUNITY CHALLENGE
+        function updateCommunityChallenge() {
+            if (gameState.gameMode !== 'multi') return;
+            
+            // Calculate total progress
+            let totalProgress = gameState.score;
+            gameState.connectedPlayers.forEach(player => {
+                totalProgress += player.score;
+            });
+            
+            gameState.communityChallenge.currentProgress = totalProgress;
+            
+            const progressPercent = Math.min(100, (totalProgress / gameState.communityChallenge.goal) * 100);
+            
+            document.getElementById('challengeCurrentPoints').textContent = totalProgress;
+            document.getElementById('challengeProgressBar').style.width = progressPercent + '%';
+            
+            // Check if challenge completed
+            if (totalProgress >= gameState.communityChallenge.goal && !gameState.communityChallenge.completed) {
+                gameState.communityChallenge.completed = true;
+                completeCommunityChallenge();
+            }
+        }
+        
+        function completeCommunityChallenge() {
+            gameState.score += 100;
+            showNotification('🏆 COMMUNITY CHALLENGE COMPLETE! +100 bonus points!');
+            addSystemMessage('🎉🎉🎉 COMMUNITY CHALLENGE COMPLETED! All participants earn 100 bonus points! 🎉🎉🎉');
+            updateDisplay();
+        }
+        
+        // 8. AUTO SIMULATION
+        function startAutoSimulation() {
+            // Simulate player activities every 12-18 seconds
+            setInterval(() => {
+                if (gameState.gameMode !== 'multi') return;
+                
+                const activePlayer = gameState.connectedPlayers.find(p => p.status === 'active');
+                if (!activePlayer) return;
+                
+                const actionRoll = Math.random();
+                
+                if (actionRoll < 0.35) {
+                    // Player gains points
+                    activePlayer.score += Math.floor(Math.random() * 40) + 15;
+                    
+                    if (Math.random() < 0.4) {
+                        const messages = [
+                            `Just harvested! 🌾`,
+                            `NASA data helped optimize my farm! 🛰️`,
+                            `Reached a new milestone! 🎯`,
+                            `Perfect planting conditions today! 🌱`,
+                            `Sustainable farming pays off! 💚`,
+                            `Water conservation working great! 💧`,
+                            `NDVI looking healthy! 🌿`
+                        ];
+                        addChatMessage(activePlayer.name, messages[Math.floor(Math.random() * messages.length)], false);
+                    }
+                    
+                    updateConnectedPlayers();
+                    updateCommunityChallenge();
+                    
+                } else if (actionRoll < 0.45) {
+                    // Player requests help
+                    const helpTypes = [
+                        { type: 'water', text: 'Tips for water conservation?', icon: '💧' },
+                        { type: 'fertilizer', text: 'Best organic fertilizer practices?', icon: '🌿' },
+                        { type: 'planting', text: 'Crop rotation advice needed', icon: '🌱' }
+                    ];
+                    
+                    const help = helpTypes[Math.floor(Math.random() * helpTypes.length)];
+                    const helpReq = {
+                        id: 'help_auto_' + Date.now(),
+                        requester: activePlayer.name,
+                        type: help.type,
+                        text: help.text,
+                        icon: help.icon,
+                        timestamp: Date.now(),
+                        helpers: []
+                    };
+                    
+                    gameState.helpRequests.push(helpReq);
+                    updateHelpRequestsDisplay();
+                    
+                } else if (actionRoll < 0.5) {
+                    // Random status change
+                    activePlayer.status = Math.random() > 0.7 ? 'inactive' : 'active';
+                    updateConnectedPlayers();
+                }
+                
+            }, 15000);
+            
+            // Update leaderboard periodically
+            setInterval(() => {
+                if (gameState.gameMode === 'multi') {
+                    updateLeaderboard();
+                }
+            }, 20000);
+        }
+
+        // === ALL ORIGINAL GAME FUNCTIONS ===
+        
+        const translations = {
+            en: {
+                gameTitle: "🌾 NASA AgriGame 🛰️",
+                gameTagline: "Grow Smarter with NASA Data – Play, Learn, Sustain!",
+                gameDescription: "Use real NASA satellite data to optimize your sustainable agricultural practices",
+                sustainabilityScore: "Sustainability Score",
+                farmActionsTitle: "Sustainable Farm Actions",
+                plantButton: "Plant",
+                waterButton: "Water",
+                fertilizeButton: "Fertilize",
+                harvestButton: "Harvest",
+                nasaDataTitle: "NASA Real-time Data",
+                soilButton: "Soil Moisture",
+                tempButton: "Temperature",
+                rainButton: "Rainfall",
+                ndviButton: "NDVI",
+                realTimeDataTitle: "Real-time NASA Data",
+                soilLabel: "Soil Moisture",
+                tempLabel: "Temperature",
+                rainLabel: "Rainfall",
+                ndviLabel: "NDVI Index",
+                cropRecommendationsTitle: "Crop Recommendations",
+                leaderboardTitle: "Global Leaderboard",
+                farmProgressTitle: "Farm Progress",
+                cropGrowthLabel: "Crop Growth",
+                sustainabilityLabel: "Sustainability"
+            },
+            ar: {
+                gameTitle: "🌾 لعبة ناسا الزراعية 🛰️",
+                gameTagline: "ازرع بذكاء مع بيانات ناسا!",
+                gameDescription: "استخدم بيانات الأقمار الصناعية الحقيقية",
+                sustainabilityScore: "نقاط الاستدامة",
+                farmActionsTitle: "إجراءات المزرعة",
+                plantButton: "زرع",
+                waterButton: "سقي",
+                fertilizeButton: "تسميد",
+                harvestButton: "حصاد",
+                nasaDataTitle: "بيانات ناسا",
+                soilButton: "رطوبة التربة",
+                tempButton: "درجة الحرارة",
+                rainButton: "هطول الأمطار",
+                ndviButton: "مؤشر الغطاء",
+                realTimeDataTitle: "بيانات في الوقت الفعلي",
+                soilLabel: "رطوبة التربة",
+                tempLabel: "درجة الحرارة",
+                rainLabel: "هطول الأمطار",
+                ndviLabel: "مؤشر الغطاء النباتي",
+                cropRecommendationsTitle: "توصيات المحاصيل",
+                leaderboardTitle: "لوحة الصدارة",
+                farmProgressTitle: "تقدم المزرعة",
+                cropGrowthLabel: "نمو المحاصيل",
+                sustainabilityLabel: "الاستدامة"
+            }
+        };
+
+        function switchLanguage(lang) {
+            gameState.currentLanguage = lang;
+            Object.keys(translations[lang]).forEach(key => {
+                const el = document.getElementById(key);
+                if (el) el.textContent = translations[lang][key];
+            });
+            document.getElementById('enBtn').classList.toggle('active', lang === 'en');
+            document.getElementById('arBtn').classList.toggle('active', lang === 'ar');
+            document.body.classList.toggle('rtl', lang === 'ar');
+            updateContextInfo();
+        }
+
+        async function fetchNASAData() {
+            try {
+                await new Promise(resolve => setTimeout(resolve, 500));
+                
+                const baseData = {
+                    'riyadh': {soil: 45, temp: 32, rain: 5, ndvi: 0.65},
+                    'alhasa': {soil: 65, temp: 28, rain: 8, ndvi: 0.75}
+                };
+                
+                const base = baseData[gameState.scenario];
+                const variation = (Math.random() - 0.5) * 10;
+                
+                gameState.nasaData = {
+                    soilMoisture: {
+                        value: Math.max(10, Math.min(95, base.soil + variation)),
+                        depth: 'root-zone',
+                        optimal: [50, 80]
+                    },
+                    temperature: {
+                        value: Math.max(-5, Math.min(45, base.temp + variation/2)),
+                        height: 'surface',
+                        optimal: [15, 30]
+                    },
+                    rainfall: {
+                        value: Math.max(0, base.rain + variation * 2),
+                        period: 'weekly',
+                        optimal: [5, 25]
+                    },
+                    ndvi: {
+                        value: Math.max(0.1, Math.min(0.95, base.ndvi + variation/100)),
+                        resolution: '30m',
+                        optimal: [0.6, 0.9]
+                    }
+                };
+                
+                updateCropRecommendations();
+                updateDisplay();
+            } catch (error) {
+                console.error('Error fetching NASA data:', error);
+            }
+        }
+
+        function evaluateSustainableDecision(action, amount) {
+            const data = gameState.nasaData;
+            let score = 0;
+            let feedback = '';
+            
+            switch(action) {
+                case 'water':
+                    const soil = data.soilMoisture.value;
+                    if (soil < 40 && amount > 60) {
+                        score = 30;
+                        feedback = 'Excellent! Dry soil replenished efficiently.';
+                    } else if (soil > 70 && amount > 30) {
+                        score = -20;
+                        feedback = 'Overwatering! Resource waste.';
+                    } else if (soil >= 40 && soil <= 70 && amount >= 40 && amount <= 60) {
+                        score = 25;
+                        feedback = 'Perfect water management!';
+                    } else {
+                        score = 10;
+                        feedback = 'Adequate watering.';
+                    }
+                    break;
+                    
+                case 'fertilize':
+                    const ndvi = data.ndvi.value;
+                    if (ndvi < 0.5 && amount > 50) {
+                        score = 25;
+                        feedback = 'Good fertilization for stressed crops.';
+                    } else if (ndvi >= 0.7 && amount > 30) {
+                        score = -15;
+                        feedback = 'Over-fertilization!';
+                    } else {
+                        score = 15;
+                        feedback = 'Adequate fertilization.';
+                    }
+                    break;
+                    
+                case 'plant':
+                    const temp = data.temperature.value;
+                    const moisture = data.soilMoisture.value;
+                    
+                    if (temp >= 18 && temp <= 28 && moisture >= 50 && moisture <= 80) {
+                        score = 20;
+                        feedback = 'Perfect planting conditions!';
+                    } else {
+                        score = 10;
+                        feedback = 'Good conditions.';
+                    }
+                    break;
+            }
+            
+            return { score, feedback };
+        }
+
+        function updateCropRecommendations() {
+            const data = gameState.nasaData;
+            const allCrops = [
+                { name: 'Corn', temp: [20, 30], moisture: [60, 80] },
+                { name: 'Wheat', temp: [15, 25], moisture: [50, 70] },
+                { name: 'Tomato', temp: [18, 28], moisture: [65, 80] },
+                { name: 'Potato', temp: [15, 25], moisture: [60, 75] }
+            ];
+            
+            const scoredCrops = allCrops.map(crop => {
+                let score = 0;
+                if (data.temperature.value >= crop.temp[0] && data.temperature.value <= crop.temp[1]) score += 25;
+                if (data.soilMoisture.value >= crop.moisture[0] && data.soilMoisture.value <= crop.moisture[1]) score += 25;
+                return { ...crop, score };
+            });
+            
+            gameState.cropRecommendations = scoredCrops.sort((a, b) => b.score - a.score).slice(0, 4);
+            updateCropRecommendationsDisplay();
+        }
+
+        function updateCropRecommendationsDisplay() {
+            const container = document.getElementById('cropRecommendations');
+            container.innerHTML = '';
+            
+            gameState.cropRecommendations.forEach((crop, index) => {
+                const card = document.createElement('div');
+                card.className = `crop-card ${index === 0 ? 'recommended' : ''}`;
+                card.innerHTML = `
+                    <div style="font-weight: bold;">${crop.name}</div>
+                    ${index === 0 ? '<div style="font-size: 0.7em;">⭐ Recommended</div>' : ''}
+                `;
+                card.onclick = () => {
+                    gameState.selectedCrop = crop.name;
+                    showNotification(`Selected ${crop.name}`);
+                };
+                container.appendChild(card);
+            });
+        }
+
+        function updateLeaderboard() {
+            if (gameState.leaderboard.length === 0) {
+                gameState.leaderboard = [
+                    { name: 'EcoFarmer42', score: 1250, location: 'Riyadh' },
+                    { name: 'GreenThumb99', score: 980, location: 'Al-Ahsa' },
+                    { name: 'SustainableSam', score: 760, location: 'Riyadh' },
+                    { name: gameState.playerName, score: gameState.score, location: gameState.realWorldContext.farmLocation }
+                ];
+            } else {
+                const playerIndex = gameState.leaderboard.findIndex(e => e.name === gameState.playerName);
+                if (playerIndex !== -1) {
+                    gameState.leaderboard[playerIndex].score = gameState.score;
+                }
+            }
+            
+            // Add multiplayer players to leaderboard
+            if (gameState.gameMode === 'multi') {
+                gameState.connectedPlayers.forEach(p => {
+                    const existing = gameState.leaderboard.findIndex(e => e.name === p.name);
+                    if (existing === -1) {
+                        gameState.leaderboard.push({name: p.name, score: p.score, location: p.location});
+                    } else {
+                        gameState.leaderboard[existing].score = p.score;
+                    }
+                });
+            }
+            
+            gameState.leaderboard.sort((a, b) => b.score - a.score);
+            updateLeaderboardDisplay();
+        }
+
+        function updateLeaderboardDisplay() {
+            const container = document.getElementById('leaderboard');
+            container.innerHTML = '';
+            
+            gameState.leaderboard.slice(0, 5).forEach((entry, index) => {
+                const item = document.createElement('div');
+                item.className = `leaderboard-item ${entry.name === gameState.playerName ? 'current' : ''}`;
+                item.innerHTML = `
+                    <span>${index + 1}. ${entry.name}</span>
+                    <span>${entry.score} pts</span>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        function checkMilestones() {
+            gameState.milestones.forEach(milestone => {
+                if (gameState.score >= milestone && !gameState.achievedMilestones.includes(milestone)) {
+                    gameState.achievedMilestones.push(milestone);
+                    showMilestoneCelebration(milestone);
+                }
+            });
+        }
+
+        function showMilestoneCelebration(milestone) {
+            const celebration = document.getElementById('celebration');
+            document.getElementById('milestoneText').textContent = `You've reached ${milestone} points!`;
+            celebration.classList.add('active');
+        }
+
+        function closeCelebration() {
+            document.getElementById('celebration').classList.remove('active');
+        }
+
+        function selectScenario(scenario) {
+            gameState.scenario = scenario;
+            gameState.realWorldContext.farmLocation = scenario === 'riyadh' ? 'Riyadh' : 'Al-Ahsa';
+            
+            document.querySelectorAll('.scenario-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            updateContextInfo();
+            fetchNASAData();
+            showNotification(`${gameState.realWorldContext.farmLocation} farm selected!`);
+        }
+
+        function startGame() {
+            document.getElementById('tutorialOverlay').style.display = 'none';
+            document.getElementById('gameContainer').style.display = 'block';
+            gameState.tutorialCompleted = true;
+            
+            if (gameState.gameMode === 'multi') {
+                addSystemMessage(`${gameState.playerName} started farming!`);
+                updateCommunityChallenge();
+            }
+            
+            fetchNASAData();
+            updateLeaderboard();
+            
+            setTimeout(() => showLearningChallenge(), 5000);
+        }
+
+        function showLearningChallenge() {
+            const challenges = [
+                { text: "NASA data shows soil moisture at 35%. How much water?", optimal: 70 },
+                { text: "Temperatures reaching 35°C. Water strategy?", optimal: 60 }
+            ];
+            
+            const challenge = challenges[Math.floor(Math.random() * challenges.length)];
+            gameState.currentChallenge = challenge;
+            
+            document.getElementById('challengeText').textContent = challenge.text;
+            document.getElementById('waterSlider').value = 50;
+            document.getElementById('waterValue').textContent = '50%';
+            document.getElementById('challengeFeedback').textContent = '';
+            document.getElementById('challengePopup').style.display = 'block';
+        }
+
+        function submitChallenge() {
+            const value = parseInt(document.getElementById('waterSlider').value);
+            const challenge = gameState.currentChallenge;
+            const feedbackEl = document.getElementById('challengeFeedback');
+            
+            const difference = Math.abs(value - challenge.optimal);
+            let score = difference <= 10 ? 30 : (difference <= 20 ? 15 : -10);
+            
+            gameState.score += score;
+            feedbackEl.textContent = score > 0 ? 'Excellent decision!' : 'Check NASA data again.';
+            feedbackEl.className = score > 0 ? 'decision-feedback good' : 'decision-feedback bad';
+            
+            if (score > 0) {
+                setTimeout(() => {
+                    document.getElementById('challengePopup').style.display = 'none';
+                    showNotification(`+${score} points!`);
+                    updateDisplay();
+                }, 2000);
+            }
+        }
+
+        function selectAction(action) {
+            gameState.selectedAction = action;
+            
+            document.querySelectorAll('.action-btn').forEach(btn => {
+                btn.style.transform = 'scale(1)';
+                btn.style.boxShadow = 'none';
+            });
+            
+            const selectedBtn = document.querySelector('.action-btn.' + action);
+            if (selectedBtn) {
+                selectedBtn.style.transform = 'scale(1.1)';
+                selectedBtn.style.boxShadow = '0 0 20px rgba(255, 255, 255, 0.5)';
+            }
+            
+            const resourceInput = document.getElementById('resourceInput');
+            if (action === 'water' || action === 'fertilize') {
+                resourceInput.style.display = 'flex';
+                document.getElementById('resourceLabel').textContent = action === 'water' ? 'Water Amount:' : 'Fertilizer Amount:';
+                document.getElementById('resourceSlider').value = 50;
+                document.getElementById('resourceValue').textContent = '50%';
+            } else {
+                resourceInput.style.display = 'none';
+            }
+            
+            document.getElementById('decisionFeedback').textContent = '';
+            showNotification('Selected: ' + action.charAt(0).toUpperCase() + action.slice(1));
+        }
+
+        document.getElementById('resourceSlider').addEventListener('input', function() {
+            document.getElementById('resourceValue').textContent = this.value + '%';
+        });
+
+        document.getElementById('waterSlider').addEventListener('input', function() {
+            document.getElementById('waterValue').textContent = this.value + '%';
+        });
+
+        function handleCellClick(event) {
+            const cellIndex = parseInt(event.target.dataset.index);
+            const cell = event.target;
+            const cellData = gameState.farmData[cellIndex];
+            
+            if (!cellData) return;
+            
+            const amount = parseInt(document.getElementById('resourceSlider').value) || 0;
+            const feedbackEl = document.getElementById('decisionFeedback');
+            let points = 0;
+            
+            switch (gameState.selectedAction) {
+                case 'plant':
+                    if (!cellData.planted) {
+                        const decision = evaluateSustainableDecision('plant', 0);
+                        cellData.planted = true;
+                        cellData.cropType = gameState.selectedCrop || 'Corn';
+                        cell.classList.add('planted');
+                        cell.innerHTML = '🌱';
+                        points = decision.score;
+                        gameState.score += points;
+                        feedbackEl.textContent = decision.feedback;
+                        feedbackEl.className = 'decision-feedback good';
+                        showNotification(`+${points} points`);
+                    } else {
+                        showNotification('Already planted!');
+                    }
+                    break;
+                    
+                case 'water':
+                    if (cellData.planted) {
+                        const decision = evaluateSustainableDecision('water', amount);
+                        cellData.watered = true;
+                        cellData.health = (cellData.health || 50) + Math.min(20, amount / 5);
+                        cell.classList.add('watered');
+                        points = decision.score;
+                        gameState.score += points;
+                        feedbackEl.textContent = decision.feedback;
+                        feedbackEl.className = points > 0 ? 'decision-feedback good' : 'decision-feedback bad';
+                        showNotification(`${points > 0 ? '+' : ''}${points} points`);
+                    } else {
+                        showNotification('Plant first!');
+                    }
+                    break;
+                    
+                case 'fertilize':
+                    if (cellData.planted) {
+                        const decision = evaluateSustainableDecision('fertilize', amount);
+                        cellData.fertilized = true;
+                        cellData.health = (cellData.health || 50) + Math.min(30, amount / 3);
+                        cell.classList.add('fertilized');
+                        points = decision.score;
+                        gameState.score += points;
+                        feedbackEl.textContent = decision.feedback;
+                        feedbackEl.className = points > 0 ? 'decision-feedback good' : 'decision-feedback bad';
+                        showNotification(`${points > 0 ? '+' : ''}${points} points`);
+                    } else {
+                        showNotification('Plant first!');
+                    }
+                    break;
+                    
+                case 'harvest':
+                    if (cellData.planted && cellData.growth >= 80) {
+                        const bonus = (cellData.health || 50) > 70 ? 25 : 10;
+                        cellData.planted = false;
+                        cellData.watered = false;
+                        cellData.fertilized = false;
+                        cellData.growth = 0;
+                        cellData.health = 50;
+                        cell.className = 'farm-cell';
+                        cell.innerHTML = '';
+                        points = 50 + bonus;
+                        gameState.score += points;
+                        showNotification(`+${points} points!`);
+                        
+                        // Share in multiplayer chat
+                        if (gameState.gameMode === 'multi' && Math.random() < 0.25) {
+                            setTimeout(() => {
+                                addChatMessage(gameState.playerName, `Just harvested ${points} points!`, true);
+                            }, 1000);
+                        }
+                    } else if (!cellData.planted) {
+                        showNotification('Nothing to harvest!');
+                    } else {
+                        showNotification('Not ready!');
+                    }
+                    break;
+            }
+            
+            updateDisplay();
+        }
+
+        function initializeFarm() {
+            const farmGrid = document.getElementById('farmGrid');
+            farmGrid.innerHTML = '';
+            gameState.farmData = [];
+            
+            for (let i = 0; i < 48; i++) {
+                const cell = document.createElement('div');
+                cell.className = 'farm-cell';
+                cell.dataset.index = i;
+                cell.addEventListener('click', handleCellClick);
+                farmGrid.appendChild(cell);
+                
+                gameState.farmData.push({
+                    planted: false,
+                    watered: false,
+                    fertilized: false,
+                    growth: 0,
+                    health: 50,
+                    cropType: null
+                });
+            }
+        }
+
+        function switchLayer(layer) {
+            gameState.currentLayer = layer;
+            document.querySelectorAll('.layer-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.layer-btn').forEach(btn => {
+                if (btn.textContent.toLowerCase().includes(layer.toLowerCase())) {
+                    btn.classList.add('active');
+                }
+            });
+            showNotification('Layer: ' + layer.toUpperCase());
+        }
+
+        function updateDisplay() {
+            document.getElementById('scoreValue').textContent = gameState.score;
+            
+            document.getElementById('soilMoisture').textContent = Math.round(gameState.nasaData.soilMoisture.value) + '%';
+            document.getElementById('temperature').textContent = Math.round(gameState.nasaData.temperature.value) + '°C';
+            document.getElementById('rainfall').textContent = Math.round(gameState.nasaData.rainfall.value) + 'mm';
+            document.getElementById('ndviValue').textContent = gameState.nasaData.ndvi.value.toFixed(2);
+            
+            updateCropGrowth();
+            updateLeaderboard();
+            checkMilestones();
+            
+            if (gameState.gameMode === 'multi') {
+                updateConnectedPlayers();
+                updateCommunityChallenge();
+            }
+        }
+
+        function updateCropGrowth() {
+            const cells = document.querySelectorAll('.farm-cell');
+            let totalGrowth = 0;
+            let plantedCount = 0;
+            
+            gameState.farmData.forEach((cellData, i) => {
+                const cell = cells[i];
+                
+                if (cellData.planted) {
+                    plantedCount++;
+                    
+                    let growthRate = 0.5;
+                    if (gameState.nasaData.soilMoisture.value > 50 && gameState.nasaData.soilMoisture.value < 80) growthRate += 0.3;
+                    if (gameState.nasaData.temperature.value > 15 && gameState.nasaData.temperature.value < 30) growthRate += 0.3;
+                    if (cellData.watered) growthRate += 0.5;
+                    if (cellData.fertilized) growthRate += 0.7;
+                    
+                    cellData.growth = Math.min(100, cellData.growth + growthRate);
+                    totalGrowth += cellData.growth;
+                    
+                    if (cellData.growth >= 80) {
+                        cell.classList.add('ready');
+                        cell.innerHTML = '🌽';
+                    } else if (cellData.growth >= 60) {
+                        cell.classList.add('healthy');
+                        cell.innerHTML = '🌾';
+                    } else if (cellData.growth >= 30) {
+                        cell.innerHTML = '🌿';
+                    } else {
+                        cell.innerHTML = '🌱';
+                    }
+                }
+            });
+            
+            const avgGrowth = plantedCount > 0 ? Math.round(totalGrowth / plantedCount) : 0;
+            document.getElementById('growthPercent').textContent = avgGrowth + '%';
+            document.getElementById('growthProgress').style.width = avgGrowth + '%';
+            
+            // Update sustainability
+            let sustainability = 100;
+            const plantedCells = gameState.farmData.filter(c => c.planted).length;
+            const wateredCells = gameState.farmData.filter(c => c.watered).length;
+            const fertilizedCells = gameState.farmData.filter(c => c.fertilized).length;
+            
+            if (plantedCells > 0) sustainability += 10;
+            if (wateredCells > plantedCells * 0.8) sustainability += 15;
+            if (fertilizedCells < plantedCells * 0.5) sustainability += 10;
+            
+            if (gameState.nasaData.soilMoisture.value < 30 || gameState.nasaData.soilMoisture.value > 90) sustainability -= 10;
+            if (gameState.nasaData.temperature.value < 5 || gameState.nasaData.temperature.value > 35) sustainability -= 15;
+            
+            sustainability = Math.max(0, Math.min(100, sustainability));
+            
+            document.getElementById('sustainabilityPercent').textContent = sustainability + '%';
+            document.getElementById('sustainabilityProgress').style.width = sustainability + '%';
+        }
+
+        function updateContextInfo() {
+            const info = `Farm Location: ${gameState.realWorldContext.farmLocation} | Data Source: ${gameState.realWorldContext.dataSource} | ${gameState.realWorldContext.updateFrequency}`;
+            document.getElementById('contextInfo').textContent = info;
+        }
+
+        function showNotification(message) {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+
+        function gameLoop() {
+            if (gameState.tutorialCompleted && Math.random() < 0.1) {
+                fetchNASAData();
+            }
+            
+            updateDisplay();
+            
+            if (gameState.gameMode === 'multi' && gameState.tutorialCompleted) {
+                updateHelpRequestsDisplay();
+            }
+            
+            setTimeout(gameLoop, 2000);
+        }
+
+        // Initialize game on page load
+        window.onload = function() {
+            initializeFarm();
+            selectAction('plant');
+            updateContextInfo();
+            updateCropRecommendations();
+            gameLoop();
+        };
+    </script>
+</body>
+</html>
